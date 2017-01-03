@@ -1,4 +1,7 @@
-package com.test.spark.ipLocationRddBoardCast
+package com.test.spark.ipLocationRddBoardCastJDBC
+
+import java.sql.{DriverManager, PreparedStatement, Connection}
+import java.sql.Date
 
 import org.apache.spark.{SparkContext, SparkConf}
 
@@ -7,7 +10,7 @@ import scala.collection.mutable.ArrayBuffer
 /**
   * Created by tao on 17/1/3.
   */
-object IpLocation {
+object IpLocationJDBC {
   def main(args: Array[String]) {
     val conf = new SparkConf().setAppName("IpLocation")
     val sc = new SparkContext(conf)
@@ -41,8 +44,9 @@ object IpLocation {
       info
     })
     //接下来按照城市统计
-
-    result.map(t=>(t._3,1)).reduceByKey(_+_)
+    val cityResult = result.map(t=>(t._3,1)).reduceByKey(_+_)
+    //最关键的,插入到mysql.这里用foreachPartition,就是为了一个分区建立一个conn
+    cityResult.foreachPartition(data2MySQL)
 
     println(result.collect.toBuffer)
     sc.stop()
@@ -78,4 +82,84 @@ object IpLocation {
     -1
   }
 
+  val data2MySQL = (iterator:Iterator[(String,Int)]) =>{
+    var conn:Connection = null
+    var ps :PreparedStatement = null
+    val sql = "INSERT INTO location(location,counts,access_date) VALUES (?,?,?)"
+
+    try {
+      conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/db","root","root")
+      iterator.foreach(line=>{
+        ps = conn.prepareStatement(sql)
+        ps.setString(1,line._1)
+        ps.setInt(2,line._2)
+        ps.setDate(3,new Date(System.currentTimeMillis()))
+        ps.executeUpdate()
+      })
+    } catch {
+      case e:Exception => println("sql error")
+    } finally {
+      if(ps!=null) {
+        ps.close()
+        ps = null
+      }
+      if(conn!=null) {
+        conn.close()
+        conn = null
+      }
+    }
+
+
+  }
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
