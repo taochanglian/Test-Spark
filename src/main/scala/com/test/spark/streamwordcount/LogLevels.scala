@@ -10,7 +10,7 @@ object LogLevels extends Logging{
 
   def setStreamLogLevels(): Unit ={
     val log4jInitialized = Logger.getRootLogger.getAllAppenders.hasMoreElements
-    if(log4jInitialized) {
+    if(!log4jInitialized) {
       logInfo("Setting log level to [WARn] from streaming example. To override add a customer log4j.properties to the classpath.")
       Logger.getRootLogger.setLevel(Level.WARN)
     }

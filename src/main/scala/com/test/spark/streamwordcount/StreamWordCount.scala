@@ -8,6 +8,9 @@ import org.apache.spark.{SparkContext, SparkConf}
   */
 object StreamWordCount {
   def main(args: Array[String]) {
+    //设置logLevel
+    LogLevels.setStreamLogLevels()
+
     val conf = new SparkConf().setAppName("StreamWordCount")
     val sc = new SparkContext(conf)
     val ssc = new StreamingContext(sc,Seconds(5))
