@@ -28,10 +28,11 @@ object KafkaWordCount {
 
     wordCounts.print()
     //如果不是打印,是写到redis中,那么
-    wordCounts.mapPartitions(it=>{
+    //wordCounts.mapPartitions(it=>{
       //创建jedis链接
 
-    })
+
+//    })
 
     ssc.start()
     ssc.awaitTermination()
